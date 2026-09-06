@@ -595,14 +595,14 @@ export default function App() {
                         className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
                           activeCategory === cat.id
                             ? cat.id === 'sets'
-                              ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-md'
+                              ? 'bg-red-600 text-white shadow-md'
                               : 'bg-black text-white shadow-md'
                             : cat.id === 'sets'
-                            ? 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+                            ? 'bg-red-50 text-red-900 border border-red-200 hover:bg-red-100'
                             : 'bg-gray-100/80 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
-                        {cat.id === 'sets' && <Sparkles size={14} className="text-amber-400" />}
+                        {cat.id === 'sets' && <Sparkles size={14} className="text-red-500" />}
                         {cat.name}
                       </button>
                     ))}
@@ -620,19 +620,22 @@ export default function App() {
 
                 {/* 1. Highlighted 4 Bundle Cards Section (Sets) */}
                 {(activeCategory === 'all' || activeCategory === 'sets') && bundleProducts.length > 0 && (
-                  <section className="mb-14 bg-zinc-950 text-white rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 border-2 border-zinc-800/90 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-1/4 w-96 h-96 bg-red-600/10 blur-[100px] pointer-events-none" />
+                  <section className="mb-14 bg-black/75 backdrop-blur-3xl text-white rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6)] relative overflow-hidden">
+                    {/* Creative Red Liquid Gradients in several places */}
+                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-red-600/25 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-rose-600/30 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-red-500/20 rounded-full blur-[100px] -translate-y-1/2 pointer-events-none" />
                     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8 relative z-10">
                       <div>
                         {(setsContent.badge || DEFAULT_SETS.badge) && (
-                          <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 to-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-2 shadow-sm">
+                          <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-2 shadow-sm">
                             <Sparkles size={12} /> {setsContent.badge || DEFAULT_SETS.badge}
                           </div>
                         )}
                         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                           {setsContent.title || DEFAULT_SETS.title}
                         </h2>
-                        <p className="text-xs sm:text-sm text-zinc-400 mt-1 whitespace-pre-line">
+                        <p className="text-xs sm:text-sm text-zinc-300 mt-1 whitespace-pre-line">
                           {setsContent.subtitle || DEFAULT_SETS.subtitle}
                         </p>
                       </div>
@@ -1151,11 +1154,11 @@ function BundleCard({
 }) {
   return (
     <div
-      className="group relative flex flex-col bg-gradient-to-b from-zinc-900 via-zinc-900 to-black text-white rounded-2xl sm:rounded-[2rem] border-2 border-zinc-700/90 hover:border-red-500 shadow-xl hover:shadow-2xl hover:shadow-red-950/40 transition-all duration-300 overflow-hidden cursor-pointer"
+      className="group relative flex flex-col bg-white/[0.03] backdrop-blur-md text-white rounded-2xl sm:rounded-[2rem] border border-white/10 hover:border-red-500/50 hover:bg-white/[0.07] shadow-lg hover:shadow-2xl hover:shadow-red-950/20 transition-all duration-300 overflow-hidden cursor-pointer"
       onClick={onDetail}
     >
       {/* Glow highlight */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/20 blur-2xl pointer-events-none group-hover:bg-red-600/35 transition-all" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-2xl pointer-events-none group-hover:bg-red-600/25 transition-all" />
 
       {/* Admin actions */}
       {isAdmin && (
@@ -1202,9 +1205,6 @@ function BundleCard({
 
       {/* Badge */}
       <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 flex flex-wrap gap-1">
-        <span className="bg-gradient-to-r from-red-600 to-amber-600 text-white text-[8px] sm:text-[10px] font-black px-2.5 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
-          <Sparkles size={11} /> Набор
-        </span>
         {product.is_new && (
           <span className="bg-zinc-800/90 text-zinc-300 text-[8px] sm:text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
             Хит
@@ -1213,45 +1213,39 @@ function BundleCard({
       </div>
 
       {/* Image container */}
-      <div className="relative aspect-square sm:aspect-[4/3] bg-zinc-950/70 p-3.5 sm:p-6 flex items-center justify-center overflow-hidden border-b border-zinc-800">
+      <div className="relative aspect-square sm:aspect-[4/3] bg-white/[0.02] p-3.5 sm:p-6 flex items-center justify-center overflow-hidden border-b border-white/5">
         {product.image ? (
           <img
             src={product.image}
             alt={product.name}
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 filter drop-shadow-md"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/18181b/ffffff?text=Набор';
+              (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/18181b/ffffff?text=Комплект';
             }}
           />
         ) : (
           <div className="text-zinc-600 flex flex-col items-center">
             <Package size={36} className="sm:w-12 sm:h-12 text-zinc-500" />
-            <span className="text-[10px] sm:text-xs mt-2 text-zinc-400">Набор техники</span>
+            <span className="text-[10px] sm:text-xs mt-2 text-zinc-400">Техника</span>
           </div>
         )}
       </div>
 
       {/* Details */}
-      <div className="p-3 sm:p-5 flex flex-col flex-grow bg-gradient-to-b from-zinc-900/90 to-black">
-        <div className="flex items-center gap-1.5 text-[8px] sm:text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1 sm:mb-2">
-          <span>Сет под ключ</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-amber-400 font-semibold">Выгода</span>
-        </div>
-
+      <div className="p-3 sm:p-5 flex flex-col flex-grow bg-transparent">
         <h3 className="text-xs sm:text-lg font-black text-white mb-2 leading-snug line-clamp-2 group-hover:text-red-400 transition-colors">
           {product.name}
         </h3>
 
         {product.description && (
-          <p className="hidden sm:line-clamp-2 text-xs text-zinc-400 mb-4 leading-relaxed whitespace-pre-line">
+          <p className="hidden sm:line-clamp-2 text-xs text-zinc-300 mb-4 leading-relaxed whitespace-pre-line">
             {product.description}
           </p>
         )}
 
-        <div className="mt-auto pt-2 sm:pt-3 border-t border-zinc-800/80 flex items-end justify-between gap-2">
+        <div className="mt-auto pt-2 sm:pt-3 border-t border-white/10 flex items-end justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[8px] sm:text-[10px] text-zinc-400 font-medium">Смена (24ч)</div>
+            <div className="text-[8px] sm:text-[10px] text-zinc-300 font-medium">Смена (24ч)</div>
             <div className="text-xs sm:text-xl font-black text-white truncate">
               {product.price?.toLocaleString('ru-RU')} ₸
             </div>
