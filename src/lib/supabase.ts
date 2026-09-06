@@ -163,7 +163,7 @@ export const DEFAULT_FOOTER: FooterContent = {
 };
 
 export const DEFAULT_SOCIAL: SocialContent = {
-  instagramUrl: '',
+  instagramUrl: 'https://instagram.com/waysrental',
   instagramLabel: 'Instagram',
 };
 
@@ -390,6 +390,18 @@ class LocalSupabaseClient {
           }
         }
 
+        const footerRow = parsed.find((r) => r.section_id === 'footer');
+        if (footerRow && Array.isArray(footerRow.data?.links)) {
+          const links = footerRow.data.links as Array<{ label: string }>;
+          const filteredLinks = links.filter((l) => {
+            const name = l.label.toLowerCase();
+            return !name.includes('instagram') && !name.includes('инстаграм') && !name.includes('новая ссылка');
+          });
+          if (filteredLinks.length !== links.length) {
+            footerRow.data.links = filteredLinks;
+            changed = true;
+          }
+        }
         if (!parsed.some((r) => r.section_id === 'features')) {
           parsed.push({ section_id: 'features', data: DEFAULT_FEATURES as unknown as Record<string, unknown> });
           changed = true;

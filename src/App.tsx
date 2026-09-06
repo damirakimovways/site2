@@ -3,7 +3,7 @@ import {
   Search, ShoppingCart, Menu, X, ChevronRight, Lock, Edit3, Plus, Trash2,
   Image as ImageIcon, Check, Loader2, Sparkles, ShieldCheck, Truck, Headphones,
   MessageCircle, Upload, Instagram, Phone, Mail, MapPin, FileText,
-  ArrowLeft, ArrowRight, Package, MoveVertical, Clock, Award, Database,
+  ArrowLeft, ArrowRight, Package, MoveVertical, Clock, Award,
 } from 'lucide-react';
 import {
   supabase, uploadImage, saveContentSection,
@@ -244,90 +244,6 @@ export default function App() {
     handleSaveProductOrder(next);
   };
 
-  const handleDownloadBackupSQL = () => {
-    try {
-      const storedProductsStr = localStorage.getItem('ways_rental_products');
-      const storedContentStr = localStorage.getItem('ways_rental_site_content');
-
-      const localProducts = storedProductsStr ? JSON.parse(storedProductsStr) : products;
-      const localContent = storedContentStr ? JSON.parse(storedContentStr) : [];
-
-      let sql = "-- ВЕЙС РЕНТАЛ: РЕЗЕРВНАЯ КОПИЯ ДАННЫХ (БЭКАП)\n";
-      sql += `-- Создано: ${new Date().toLocaleString('ru-RU')}\n`;
-      sql += `-- Всего товаров для экспорта: ${localProducts.length}\n\n`;
-
-      sql += "-- 1. СБРОС И СОЗДАНИЕ ТАБЛИЦЫ ТОВАРОВ\n";
-      sql += "DROP TABLE IF EXISTS products CASCADE;\n\n";
-      sql += "CREATE TABLE products (\n";
-      sql += "  id text PRIMARY KEY,\n";
-      sql += "  name text NOT NULL,\n";
-      sql += "  category text NOT NULL,\n";
-      sql += "  price integer NOT NULL DEFAULT 0,\n";
-      sql += "  image text,\n";
-      sql += "  is_new boolean NOT NULL DEFAULT false,\n";
-      sql += "  description text DEFAULT '',\n";
-      sql += "  created_at timestamptz DEFAULT now()\n";
-      sql += ");\n\n";
-
-      sql += "ALTER TABLE products ENABLE ROW LEVEL SECURITY;\n";
-      sql += "CREATE POLICY \"anon_select_products\" ON products FOR SELECT TO anon, authenticated USING (true);\n";
-      sql += "CREATE POLICY \"anon_insert_products\" ON products FOR INSERT TO anon, authenticated WITH CHECK (true);\n";
-      sql += "CREATE POLICY \"anon_update_products\" ON products FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);\n";
-      sql += "CREATE POLICY \"anon_delete_products\" ON products FOR DELETE TO anon, authenticated USING (true);\n\n";
-
-      sql += "-- ЗАПОЛНЕНИЕ ТОВАРОВ\n";
-      localProducts.forEach((p: Product) => {
-        const id = p.id;
-        const name = (p.name || '').replace(/'/g, "''");
-        const category = (p.category || '').replace(/'/g, "''");
-        const price = p.price || 0;
-        const image = p.image ? `'${p.image.replace(/'/g, "''")}'` : 'NULL';
-        const is_new = p.is_new ? 'true' : 'false';
-        const description = (p.description || '').replace(/'/g, "''");
-
-        sql += `INSERT INTO products (id, name, category, price, image, is_new, description) VALUES ('${id}', '${name}', '${category}', ${price}, ${image}, ${is_new}, '${description}');\n`;
-      });
-
-      sql += "\n-- 2. СБРОС И СОЗДАНИЕ ТАБЛИЦЫ НАСТРОЕК САЙТА (ТЕКСТЫ, РАЗДЕЛЫ, КОНТАКТЫ)\n";
-      sql += "DROP TABLE IF EXISTS site_content CASCADE;\n\n";
-      sql += "CREATE TABLE site_content (\n";
-      sql += "  section_id text PRIMARY KEY,\n";
-      sql += "  data jsonb NOT NULL,\n";
-      sql += "  updated_at timestamptz DEFAULT now()\n";
-      sql += ");\n\n";
-
-      sql += "ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;\n";
-      sql += "CREATE POLICY \"anon_select_content\" ON site_content FOR SELECT TO anon, authenticated USING (true);\n";
-      sql += "CREATE POLICY \"anon_insert_content\" ON site_content FOR INSERT TO anon, authenticated WITH CHECK (true);\n";
-      sql += "CREATE POLICY \"anon_update_content\" ON site_content FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);\n";
-      sql += "CREATE POLICY \"anon_delete_content\" ON site_content FOR DELETE TO anon, authenticated USING (true);\n\n";
-
-      sql += "-- ЗАПОЛНЕНИЕ РАЗДЕЛОВ\n";
-      if (localContent && localContent.length > 0) {
-        localContent.forEach((c: { section_id: string; data: unknown }) => {
-          const section_id = c.section_id.replace(/'/g, "''");
-          const dataStr = JSON.stringify(c.data).replace(/'/g, "''");
-          sql += `INSERT INTO site_content (section_id, data) VALUES ('${section_id}', '${dataStr}');\n`;
-        });
-      }
-
-      const blob = new Blob([sql], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'ways_rental_backup.sql';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showToast('Бэкап SQL успешно скачан на компьютер!');
-    } catch (e) {
-      console.error(e);
-      showToast('Ошибка при создании бэкапа', 'error');
-    }
-  };
-
   const saveSection = async (sectionId: string, data: unknown, msg: string) => {
     if (await saveContentSection(sectionId, data)) showToast(msg);
     else showToast('Ошибка сохранения', 'error');
@@ -403,25 +319,15 @@ export default function App() {
                 <strong className="text-red-400">Режим редактирования активен:</strong> нажимайте на иконки с карандашом у любого блока для настройки, добавляйте и удаляйте технику.
               </span>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleDownloadBackupSQL}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all shadow-md cursor-pointer"
-                title="Скачать все добавленные товары и разделы в формате .sql"
-              >
-                <Database size={12} />
-                <span>Скачать бэкап (SQL)</span>
-              </button>
-              <button
-                onClick={() => {
-                  setIsAdmin(false);
-                  showToast('Режим редактирования выключен');
-                }}
-                className="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap"
-              >
-                Выйти
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                setIsAdmin(false);
+                showToast('Режим редактирования выключен');
+              }}
+              className="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap shrink-0"
+            >
+              Выйти
+            </button>
           </div>
         </div>
       )}
@@ -991,7 +897,10 @@ export default function App() {
 
           <div className="flex flex-wrap gap-4 sm:gap-6 font-semibold items-center justify-center text-xs sm:text-sm">
             {footerLinks
-              .filter((link) => !link.label.toLowerCase().includes('правил'))
+              .filter((link) => {
+                const l = link.label.toLowerCase();
+                return !l.includes('правил') && !l.includes('instagram') && !l.includes('инстаграм') && !l.includes('новая ссылка');
+              })
               .map((link, i) => (
               <button
                 key={i}
@@ -1011,32 +920,32 @@ export default function App() {
             ))}
 
             {/* Instagram - logo only, without text */}
-            {socialContent.instagramUrl ? (
-              <a
-                href={socialContent.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#962fbf] text-white flex items-center justify-center hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm shrink-0"
-                title="Instagram"
-                aria-label="Instagram"
-              >
-                <Instagram size={18} />
-              </a>
-            ) : (
-              <span
-                className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#962fbf] text-white flex items-center justify-center opacity-70 shrink-0"
-                title="Instagram"
-                aria-label="Instagram"
-              >
-                <Instagram size={18} />
-              </span>
-            )}
+            {(() => {
+              let igUrl = socialContent.instagramUrl?.trim() || 'https://instagram.com/waysrental';
+              if (igUrl && !igUrl.startsWith('http://') && !igUrl.startsWith('https://')) {
+                if (igUrl.startsWith('@')) igUrl = igUrl.slice(1);
+                if (igUrl.startsWith('instagram.com/')) {
+                  igUrl = `https://${igUrl}`;
+                } else {
+                  igUrl = `https://instagram.com/${igUrl}`;
+                }
+              }
+              return (
+                <a
+                  href={igUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#962fbf] text-white flex items-center justify-center hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm shrink-0"
+                  title="Instagram"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={18} />
+                </a>
+              );
+            })()}
 
             {isAdmin && (
               <div className="flex items-center gap-1">
-                <button onClick={() => setIsSocialModalOpen(true)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-700" title="Редактировать Instagram">
-                  <Edit3 size={15} />
-                </button>
                 <button onClick={() => setIsFooterModalOpen(true)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-700" title="Редактировать подвал">
                   <Edit3 size={15} />
                 </button>

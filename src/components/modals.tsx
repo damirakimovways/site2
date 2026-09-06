@@ -182,18 +182,38 @@ export function FooterModal({ initialData, onSave, onClose }: {
 export function SocialModal({ initialData, onSave, onClose }: {
   initialData: SocialContent; onSave: (d: SocialContent) => void; onClose: () => void;
 }) {
-  const [formData, setFormData] = useState<SocialContent>(initialData);
+  const [formData, setFormData] = useState<SocialContent>(initialData || { instagramUrl: '', instagramLabel: 'Instagram' });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
+
+  const handleSave = () => {
+    let url = formData.instagramUrl.trim();
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      if (url.startsWith('@')) url = url.slice(1);
+      if (url.startsWith('instagram.com/')) {
+        url = `https://${url}`;
+      } else {
+        url = `https://instagram.com/${url}`;
+      }
+    }
+    onSave({ ...formData, instagramUrl: url });
+  };
+
   return (
     <ModalShell title="Instagram" onClose={onClose} maxWidth="max-w-md">
       <div className="space-y-4">
         <Field label="Ссылка на Instagram">
-          <input type="text" value={formData.instagramUrl} onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })} className={inputCls} placeholder="https://instagram.com/..." />
+          <input type="text" value={formData.instagramUrl} onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })} className={inputCls} placeholder="https://instagram.com/waysrental или @waysrental" />
         </Field>
         <Field label="Текст кнопки">
           <input type="text" value={formData.instagramLabel} onChange={(e) => setFormData({ ...formData, instagramLabel: e.target.value })} className={inputCls} placeholder="Instagram" />
         </Field>
       </div>
-      <ModalActions onClose={onClose} onSave={() => onSave(formData)} />
+      <ModalActions onClose={onClose} onSave={handleSave} />
     </ModalShell>
   );
 }
