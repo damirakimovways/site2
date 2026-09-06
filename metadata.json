@@ -1,0 +1,6 @@
+{
+  "name": "WAYS Rental",
+  "description": "Сервис аренды съемочного и фото/видео оборудования",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
